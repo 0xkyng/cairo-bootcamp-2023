@@ -6,7 +6,8 @@ mod Balance_Counter {
     #[storage]
     struct Storage {
         owner: ContractAddress,
-        balance: u256
+        balance: u256,
+        balances: LegacyMap::<ContractAddress, u256>,
     }
 
 
@@ -26,10 +27,18 @@ mod Balance_Counter {
         assert(caller == owner, 'only owner can set balance');
         self.balance.write(amount);
     }
+    
+    #[external(v0)]
+    fn increase_balance(ref self: ContractState, amount: u256) {
+        let caller = get_caller_address();
+        let current_balance = self.balances.read(caller);
+
+        self.balances.write(caller, current_balance + amount);
+    }
 
     // this utility function allows the balance of the contract to be read
-    #[external(v0)]
-    fn get_balance(self: @ContractState) -> u256 {
-        self.balance.read()
+     #[external(v0)]
+    fn get_balance(self: @ContractState, address: ContractAddress) -> u256 {
+        self.balances.read(address)
     }
 }
